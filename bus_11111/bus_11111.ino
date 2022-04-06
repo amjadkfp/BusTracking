@@ -4,21 +4,17 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
-
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 TinyGPSPlus gps;  // The TinyGPS++ object
 SoftwareSerial ss(2, 0); // The serial connection to the GPS device
-const char* ssid = "vivo";
-const char* password = "1234567890";
+const char* ssid = "optimus";
+const char* password = "pass1234";
 float latitude , longitude;
 int year , month , date, hour , minute , second;
 String date_str , time_str , lat_str , lng_str;
-char Disconnected;
 int pm;
 //int numreadings = 10;
 String latarray[20];
@@ -27,7 +23,7 @@ String lngarray[20];
 unsigned int i = 0;
 const unsigned long Interval = 13000;
 unsigned long previousTime = 0;
-
+WiFiServer server(80);
 void setup()
 {
   Serial.begin(115200);
@@ -37,10 +33,15 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  //while 
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
   Serial.println("");
   Serial.println("WiFi connected");
-
+  server.begin();
+  Serial.println("Server started");
   // Print the IP address
   Serial.println(WiFi.localIP());
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
@@ -50,14 +51,11 @@ void setup()
 }
 void loop()
 {
-  Disconnected();
   unsigned long currentTime = millis();
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
- 
   while (ss.available() > 0)
-  
     if (gps.encode(ss.read()))
     { 
      if (currentTime - previousTime >= Interval) { 
@@ -93,16 +91,8 @@ void loop()
         }
         previousTime = currentTime;
        }       
-      }
+      //}
      
     }
-  // Check if a client has connected
 
-  char Disconnected(WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-       display.setCursor(0, 20);
-        display.println("Disconnected");
-  }
- 
+ }
